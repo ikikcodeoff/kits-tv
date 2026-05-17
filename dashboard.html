@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KITS TV — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b0a;--surface:#0f1410;--surface2:#161d17;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --green:#00e5a0;--green2:#00ffb2;--gdim:rgba(0,229,160,0.1);
+  --text:#f2f5f3;--muted:#6b7d74;--red:#ff4f4f;
+  --inp:#13190f;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;position:relative}
+#login::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.login-box{position:relative;background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px;text-align:center}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:0.5rem}
+.login-logo img{height:50px;width:auto;object-fit:contain}
+.login-logo-text{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:0.1em;color:var(--text);line-height:1}
+.login-logo-text span{color:var(--green)}
+.login-sub{font-size:0.65rem;letter-spacing:0.26em;color:var(--muted);text-transform:uppercase;margin-bottom:2rem}
+.login-box h2{font-size:0.9rem;font-weight:400;color:var(--muted);margin-bottom:1.5rem}
+
+/* FORM ELEMENTS */
+.field{margin-bottom:0.9rem;text-align:left}
+.field label{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--inp);border:1px solid var(--border2);border-radius:9px;
+  padding:10px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;
+  outline:none;transition:border-color .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green)}
+.field select option{background:#0f1410}
+.field textarea{resize:vertical;min-height:52px}
+.field input[type=number]{-moz-appearance:textfield}
+
+.btn-primary{width:100%;background:var(--green);color:#080b0a;border:none;border-radius:9px;padding:12px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-primary:hover{background:var(--green2)}
+.err{color:var(--red);font-size:.78rem;margin-top:.7rem;display:none}
+
+/* DASHBOARD */
+#dash{display:none}
+.dash-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.dash-logo{display:flex;align-items:center;gap:8px}
+.dash-logo img{height:32px;width:auto;object-fit:contain}
+.dash-logo-text{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.1em;color:var(--text)}
+.dash-logo-text span{color:var(--green)}
+.dash-label{font-size:.62rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-left:10px}
+.dash-acts{display:flex;gap:8px;align-items:center}
+
+.btn-sm{padding:7px 15px;border-radius:7px;font-size:.76rem;font-weight:500;cursor:pointer;border:1px solid var(--border2);font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn-sm.ghost{background:transparent;color:var(--muted)}
+.btn-sm.ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-sm.green{background:var(--green);color:#080b0a;border-color:var(--green);font-weight:600}
+.btn-sm.green:hover{background:var(--green2)}
+.btn-sm.danger{background:transparent;color:var(--red);border-color:rgba(255,79,79,.25)}
+.btn-sm.danger:hover{background:rgba(255,79,79,.08)}
+
+/* LAYOUT */
+.dash-main{max-width:1100px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:1fr 390px;gap:1.75rem;align-items:start}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:15px;overflow:hidden}
+.panel-head{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:.67rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+
+/* MATCH ROW */
+.match-row{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;transition:background .15s}
+.match-row:last-child{border-bottom:none}
+.match-row:hover{background:var(--surface2)}
+.mrow-info{flex:1;min-width:0}
+.mrow-teams{font-weight:500;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow-meta{display:flex;align-items:center;gap:7px;margin-top:3px}
+.badge{font-size:.62rem;padding:2px 8px;border-radius:100px;letter-spacing:.08em;font-weight:500;border:1px solid transparent}
+.badge.live{background:rgba(255,79,79,.1);color:var(--red);border-color:rgba(255,79,79,.25)}
+.badge.upcoming{background:var(--gdim);color:var(--green);border-color:rgba(0,229,160,.25)}
+.badge.finished{background:rgba(255,255,255,.04);color:var(--muted);border-color:var(--border)}
+.mrow-score{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--text);min-width:48px;text-align:center}
+.mrow-acts{display:flex;gap:5px}
+.icon-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn.edit:hover{border-color:var(--green);color:var(--green);background:rgba(0,229,160,.08)}
+.icon-btn.del:hover{border-color:var(--red);color:var(--red);background:rgba(255,79,79,.08)}
+
+/* FORM BODY */
+.form-body{padding:1.1rem 1.25rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.fsep{font-size:.64rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin:.9rem 0 .4rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
+
+/* GENERATE */
+.gen-section{padding:1.1rem 1.25rem}
+.gen-info{font-size:.8rem;color:var(--muted);line-height:1.65;margin-bottom:1rem}
+.gen-info code{background:var(--surface2);padding:2px 7px;border-radius:4px;font-size:.75rem;color:var(--green)}
+
+/* LOGO UPLOAD */
+.upload-zone{border:2px dashed var(--border2);border-radius:10px;padding:1.4rem;text-align:center;cursor:pointer;position:relative;transition:border-color .15s}
+.upload-zone:hover{border-color:var(--green)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.logo-prev{max-height:54px;max-width:160px;margin:0 auto .5rem;display:none}
+.logo-prev.on{display:block}
+.upload-hint{font-size:.75rem;color:var(--muted);line-height:1.6}
+
+/* SETTINGS */
+.settings-row{grid-column:1/-1}
+.pwd-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:.7rem;align-items:end;padding:1.1rem 1.25rem}
+
+/* EMPTY */
+.empty-list{padding:3rem;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.9}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);border-radius:100px;padding:10px 24px;font-size:.8rem;font-weight:600;letter-spacing:.05em;transition:transform .3s ease;z-index:9999;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:780px){.dash-main{grid-template-columns:1fr}.form-row,.pwd-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">
+      <img id="loginLogoImg" src="" alt="KITS TV" style="display:none">
+      <div id="loginLogoText" class="login-logo-text">KIT<span>S</span></div>
+    </div>
+    <div class="login-sub">Dashboard Admin</div>
+    <h2>Connexion requise</h2>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="pwdIn" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" onclick="tryLogin()">Accéder au dashboard</button>
+    <div class="err" id="loginErr">Mot de passe incorrect.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash">
+  <header class="dash-header">
+    <div style="display:flex;align-items:center">
+      <div class="dash-logo">
+        <img id="dashLogoImg" src="" alt="KITS TV" style="display:none">
+        <div id="dashLogoText" class="dash-logo-text">KIT<span>S</span></div>
+      </div>
+      <span class="dash-label">Dashboard</span>
+    </div>
+    <div class="dash-acts">
+      <a href="index.html" target="_blank" class="btn-sm ghost">↗ Voir le site</a>
+      <button class="btn-sm ghost" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <div class="dash-main">
+
+    <!-- LEFT -->
+    <div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Matchs affichés</span>
+          <button class="btn-sm green" onclick="resetForm()">+ Ajouter</button>
+        </div>
+        <div id="matchList"></div>
+      </div>
+
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-head"><span class="panel-title">Générer le HTML</span></div>
+        <div class="gen-section">
+          <div class="gen-info">Génère un <code>index.html</code> autonome avec les matchs intégrés, prêt à uploader sur votre serveur.</div>
+          <button class="btn-sm green" style="width:100%;padding:10px" onclick="generateHTML()">⬇ Télécharger index.html</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: FORM -->
+    <div>
+      <div class="panel" id="formPanel">
+        <div class="panel-head">
+          <span class="panel-title" id="formTitle">Nouveau match</span>
+          <button class="btn-sm ghost" onclick="resetForm()" style="font-size:.7rem;padding:4px 9px">Annuler</button>
+        </div>
+        <div class="form-body">
+          <input type="hidden" id="eId">
+          <div class="field"><label>Compétition</label><input type="text" id="fComp" placeholder="Ligue 1, Champions League…"></div>
+
+          <div class="fsep">Équipe domicile</div>
+          <div class="field"><label>Nom équipe A</label><input type="text" id="fA" placeholder="Paris SG"></div>
+          <div class="field"><label>Logo A (URL)</label><input type="text" id="fLA" placeholder="https://…"></div>
+
+          <div class="fsep">Équipe visiteur</div>
+          <div class="field"><label>Nom équipe B</label><input type="text" id="fB" placeholder="Marseille"></div>
+          <div class="field"><label>Logo B (URL)</label><input type="text" id="fLB" placeholder="https://…"></div>
+
+          <div class="fsep">Score &amp; statut</div>
+          <div class="form-row">
+            <div class="field"><label>Score A</label><input type="number" id="fSA" value="0" min="0"></div>
+            <div class="field"><label>Score B</label><input type="number" id="fSB" value="0" min="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Statut</label>
+              <select id="fStat">
+                <option value="upcoming">À venir</option>
+                <option value="live">En direct</option>
+                <option value="finished">Terminé</option>
+              </select>
+            </div>
+            <div class="field"><label>Temps / Période</label><input type="text" id="fTime" placeholder="67' ou HT"></div>
+          </div>
+
+          <div class="fsep">Streaming</div>
+          <div class="field"><label>URL Owncast (embed Live)</label><input type="url" id="fOwn" placeholder="http://localhost:8080"></div>
+          <div class="field"><label>Lien alternatif</label><input type="url" id="fLink" placeholder="https://…"></div>
+          <div class="field"><label>Date / heure affichée</label><input type="text" id="fDate" placeholder="Aujourd'hui · 21h00"></div>
+
+          <button class="btn-primary" style="margin-top:1rem" onclick="saveMatch()">Enregistrer le match</button>
+        </div>
+      </div>
+
+      <!-- LOGO SITE -->
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-head"><span class="panel-title">Logo du site</span></div>
+        <div style="padding:1.1rem 1.25rem">
+          <div class="upload-zone">
+            <input type="file" id="logoFile" accept="image/*" onchange="uploadLogo(event)">
+            <img id="logoPrev" class="logo-prev" src="" alt="">
+            <div class="upload-hint">Cliquez pour uploader votre logo PNG<br><span style="color:var(--green);font-size:.7rem">Fond transparent recommandé</span></div>
+          </div>
+          <button class="btn-sm danger" style="width:100%;margin-top:.7rem;padding:8px" onclick="removeLogo()">Supprimer le logo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="settings-row panel">
+      <div class="panel-head"><span class="panel-title">Paramètres — Mot de passe</span></div>
+      <div class="pwd-grid">
+        <div class="field" style="margin:0"><label>Nouveau mot de passe</label><input type="password" id="np1" placeholder="Nouveau"></div>
+        <div class="field" style="margin:0"><label>Confirmer</label><input type="password" id="np2" placeholder="Confirmer"></div>
+        <button class="btn-sm green" style="height:40px" onclick="changePwd()">Changer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── AUTH ────────────────────────────────────────────
+const DEF_PWD='kitstvadmin', PWD_KEY='kitstvPwd', KEY='kitstvMatches', LKEY='kitstvLogo';
+const getPwd=()=>localStorage.getItem(PWD_KEY)||DEF_PWD;
+
+function tryLogin(){
+  if(document.getElementById('pwdIn').value===getPwd()){
+    sessionStorage.setItem('kitstvAuth','1');
+    document.getElementById('login').style.display='none';
+    document.getElementById('dash').style.display='block';
+    initDash();
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+document.getElementById('pwdIn').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+function logout(){sessionStorage.removeItem('kitstvAuth');location.reload();}
+function changePwd(){
+  const a=document.getElementById('np1').value,b=document.getElementById('np2').value;
+  if(!a)return toast('Entrez un mot de passe','red');
+  if(a!==b)return toast('Les mots de passe ne correspondent pas','red');
+  localStorage.setItem(PWD_KEY,a);
+  document.getElementById('np1').value='';document.getElementById('np2').value='';
+  toast('Mot de passe mis à jour !');
+}
+if(sessionStorage.getItem('kitstvAuth')){
+  document.getElementById('login').style.display='none';
+  document.getElementById('dash').style.display='block';
+}
+
+// ── LOGO ─────────────────────────────────────────────
+function uploadLogo(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{localStorage.setItem(LKEY,ev.target.result);loadLogos();toast('Logo mis à jour !');};
+  r.readAsDataURL(f);
+}
+function removeLogo(){localStorage.removeItem(LKEY);loadLogos();toast('Logo supprimé');}
+function loadLogos(){
+  const l=localStorage.getItem(LKEY);
+  // login
+  if(l){document.getElementById('loginLogoImg').src=l;document.getElementById('loginLogoImg').style.display='block';document.getElementById('loginLogoText').style.display='none';}
+  else{document.getElementById('loginLogoImg').style.display='none';document.getElementById('loginLogoText').style.display='block';}
+  // dash header
+  if(l){document.getElementById('dashLogoImg').src=l;document.getElementById('dashLogoImg').style.display='block';document.getElementById('dashLogoText').style.display='none';}
+  else{document.getElementById('dashLogoImg').style.display='none';document.getElementById('dashLogoText').style.display='block';}
+  // preview
+  const p=document.getElementById('logoPrev');
+  if(l){p.src=l;p.classList.add('on');}else p.classList.remove('on');
+}
+
+// ── DATA ─────────────────────────────────────────────
+function getMatches(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):[];}catch{return [];}}
+function saveMatches(a){localStorage.setItem(KEY,JSON.stringify(a));}
+let nid=Date.now();
+
+function initDash(){renderList();loadLogos();}
+
+// ── LIST ─────────────────────────────────────────────
+function renderList(){
+  const m=getMatches(),el=document.getElementById('matchList');
+  if(!m.length){el.innerHTML='<div class="empty-list">Aucun match.<br>Cliquez sur <strong>+ Ajouter</strong> pour commencer.</div>';return;}
+  const lb={live:'Live',upcoming:'À venir',finished:'Terminé'};
+  el.innerHTML=m.map(x=>`
+    <div class="match-row">
+      <div class="mrow-info">
+        <div class="mrow-teams">${x.teamA.name} vs ${x.teamB.name}</div>
+        <div class="mrow-meta">
+          <span class="badge ${x.status}">${lb[x.status]}</span>
+          <span style="font-size:.7rem;color:var(--muted)">${x.competition}</span>
+          ${x.owncastUrl?'<span style="font-size:.64rem;color:var(--green);letter-spacing:.08em">Owncast</span>':''}
+        </div>
+      </div>
+      <div class="mrow-score">${x.status!=='upcoming'?x.scoreA+'-'+x.scoreB:'vs'}</div>
+      <div class="mrow-acts">
+        <button class="icon-btn edit" title="Modifier" onclick="editMatch(${x.id})">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn del" title="Supprimer" onclick="delMatch(${x.id})">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+// ── FORM ─────────────────────────────────────────────
+const fids=['fComp','fA','fLA','fB','fLB','fTime','fOwn','fLink','fDate'];
+function resetForm(){
+  document.getElementById('eId').value='';
+  document.getElementById('formTitle').textContent='Nouveau match';
+  fids.forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fSA').value=0;
+  document.getElementById('fSB').value=0;
+  document.getElementById('fStat').value='upcoming';
+}
+function editMatch(id){
+  const x=getMatches().find(m=>m.id===id);if(!x)return;
+  document.getElementById('eId').value=id;
+  document.getElementById('formTitle').textContent='Modifier le match';
+  document.getElementById('fComp').value=x.competition;
+  document.getElementById('fA').value=x.teamA.name;
+  document.getElementById('fLA').value=x.teamA.logo||'';
+  document.getElementById('fB').value=x.teamB.name;
+  document.getElementById('fLB').value=x.teamB.logo||'';
+  document.getElementById('fSA').value=x.scoreA;
+  document.getElementById('fSB').value=x.scoreB;
+  document.getElementById('fStat').value=x.status;
+  document.getElementById('fTime').value=x.time||'';
+  document.getElementById('fOwn').value=x.owncastUrl||'';
+  document.getElementById('fLink').value=x.link||'';
+  document.getElementById('fDate').value=x.date||'';
+  document.getElementById('formPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function saveMatch(){
+  const a=document.getElementById('fA').value.trim(),b=document.getElementById('fB').value.trim();
+  if(!a||!b)return toast('Renseignez les deux équipes','red');
+  const eid=document.getElementById('eId').value;
+  const m={
+    id:eid?parseInt(eid):nid++,
+    competition:document.getElementById('fComp').value.trim()||'Match',
+    teamA:{name:a,logo:document.getElementById('fLA').value.trim()},
+    teamB:{name:b,logo:document.getElementById('fLB').value.trim()},
+    scoreA:parseInt(document.getElementById('fSA').value)||0,
+    scoreB:parseInt(document.getElementById('fSB').value)||0,
+    status:document.getElementById('fStat').value,
+    time:document.getElementById('fTime').value.trim(),
+    owncastUrl:document.getElementById('fOwn').value.trim(),
+    link:document.getElementById('fLink').value.trim()||'#',
+    date:document.getElementById('fDate').value.trim()
+  };
+  const arr=getMatches(),idx=arr.findIndex(x=>x.id===m.id);
+  if(idx>=0)arr[idx]=m;
+  else{if(arr.length>=3)return toast('Max 3 matchs. Supprimez-en un.','red');arr.push(m);}
+  saveMatches(arr);renderList();resetForm();toast('Match enregistré !');
+}
+function delMatch(id){
+  if(!confirm('Supprimer ce match ?'))return;
+  saveMatches(getMatches().filter(m=>m.id!==id));renderList();toast('Match supprimé');
+}
+
+// ── GENERATE HTML ────────────────────────────────────
+function generateHTML(){
+  const matches=getMatches();
+  const logo=localStorage.getItem(LKEY)||'';
+  const mj=JSON.stringify(matches).replace(/</g,'\\u003c');
+  const logoTag=logo?`<img src="${logo}" alt="KITS TV" style="height:38px;width:auto;object-fit:contain">`:'';
+  const logoHeadText=logo?'':`<div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.1em;color:#f2f5f3;line-height:1">KIT<span style="color:#00e5a0">S</span></div>`;
+
+  const html=`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KITS TV</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080b0a;--surface:#0f1410;--surface2:#161d17;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--green:#00e5a0;--green2:#00ffb2;--gdim:rgba(0,229,160,.1);--text:#f2f5f3;--muted:#6b7d74;--red:#ff4f4f}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;border-bottom:1px solid var(--border);background:rgba(8,11,10,.95);backdrop-filter:blur(12px)}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-sub{font-size:.6rem;letter-spacing:.28em;color:var(--muted);text-transform:uppercase}
+.live-badge{display:flex;align-items:center;gap:7px;border:1px solid rgba(255,79,79,.3);background:rgba(255,79,79,.08);border-radius:100px;padding:5px 14px 5px 9px;font-size:.68rem;font-weight:600;letter-spacing:.14em;color:var(--red);text-transform:uppercase}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero{position:relative;z-index:1;text-align:center;padding:3.5rem 2rem 3rem;border-bottom:1px solid var(--border);overflow:hidden}
+.hero::after{content:'';position:absolute;bottom:-100px;left:50%;transform:translateX(-50%);width:600px;height:220px;background:radial-gradient(ellipse,rgba(0,229,160,.06) 0%,transparent 70%);pointer-events:none}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,7vw,6rem);letter-spacing:.04em;line-height:1;color:var(--text)}
+.hero h1 em{font-style:normal;color:var(--green)}
+.hero p{margin-top:.9rem;font-size:.78rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+.section{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:3rem 2rem}
+.section-head{display:flex;align-items:center;gap:10px;margin-bottom:2rem;font-size:.67rem;letter-spacing:.26em;color:var(--muted);text-transform:uppercase}
+.section-head::before{content:'';width:20px;height:2px;background:var(--green);flex-shrink:0}
+.match-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1.25rem}
+.match-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:up .5s ease both;transition:border-color .2s}
+.match-card:hover{border-color:rgba(0,229,160,.2)}
+.match-card:nth-child(1){animation-delay:.05s}.match-card:nth-child(2){animation-delay:.13s}.match-card:nth-child(3){animation-delay:.21s}
+@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.player-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;display:block}
+.player-wrap iframe{width:100%;height:100%;border:none;display:block}
+.player-cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--surface2);cursor:pointer;transition:background .15s}
+.player-cover:hover{background:#1a2420}
+.play-circle{width:54px;height:54px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.player-cover:hover .play-circle{transform:scale(1.07)}
+.play-circle svg{width:22px;fill:#080b0a;margin-left:3px}
+.player-cover p{font-size:.72rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.card-bar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+.card-comp{font-size:.67rem;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+.status-pill{font-size:.64rem;font-weight:600;letter-spacing:.1em;padding:3px 10px;border-radius:100px;border:1px solid transparent}
+.status-pill.live{background:rgba(255,79,79,.1);color:var(--red);border-color:rgba(255,79,79,.25);animation:sblink 2s ease infinite}
+.status-pill.upcoming{background:var(--gdim);color:var(--green);border-color:rgba(0,229,160,.25)}
+.status-pill.finished{background:rgba(255,255,255,.04);color:var(--muted);border-color:var(--border)}
+@keyframes sblink{0%,100%{opacity:1}50%{opacity:.5}}
+.score-area{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.75rem;padding:1.75rem 1.5rem}
+.team{display:flex;flex-direction:column;align-items:center;gap:10px}
+.team-logo{width:62px;height:62px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.team-logo img{width:42px;height:42px;object-fit:contain}
+.team-init{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;color:var(--muted)}
+.team-name{font-size:.8rem;font-weight:500;text-align:center;color:var(--text);line-height:1.3}
+.score-mid{display:flex;flex-direction:column;align-items:center;gap:5px}
+.score-num{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;letter-spacing:.04em;color:var(--text);line-height:1;display:flex;align-items:center;gap:4px}
+.score-sep{color:var(--muted);font-size:2.2rem}
+.score-time{font-size:.68rem;font-weight:600;color:var(--green);letter-spacing:.12em}
+.card-foot{border-top:1px solid var(--border);padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between}
+.card-date{font-size:.7rem;color:var(--muted)}
+.btn-watch{display:inline-flex;align-items:center;gap:7px;background:var(--green);color:#080b0a;border:none;border-radius:8px;padding:8px 18px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s,transform .1s}
+.btn-watch:hover{background:var(--green2);transform:scale(1.02)}
+.btn-watch svg{width:13px;fill:#080b0a}
+footer{position:relative;z-index:1;text-align:center;padding:2rem;border-top:1px solid var(--border);font-size:.67rem;letter-spacing:.16em;color:var(--muted)}
+footer strong{color:var(--green);font-weight:500}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-wrap">
+    ${logoTag}${logoHeadText}
+    <div class="logo-sub" style="margin-left:4px">TV · Sports en direct</div>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div>En direct</div>
+</header>
+<div class="hero">
+  <h1>Regardez tous<br>les <em>matchs</em> live</h1>
+  <p>Scores · Streaming · En temps réel</p>
+</div>
+<main class="section">
+  <div class="section-head">Matchs du jour</div>
+  <div class="match-grid" id="grid"></div>
+</main>
+<footer><strong>KITS TV</strong> &nbsp;·&nbsp; Tous droits réservés</footer>
+<script>
+const matches=${mj};
+function ini(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function logoEl(t){return t.logo?'<img src="'+t.logo+'" alt="'+t.name+'">':"<div class='team-init'>"+ini(t.name)+"</div>";}
+const lb={live:'● Live',upcoming:'À venir',finished:'Terminé'};
+function play(id,url){
+  const base=url.replace(/\\/$/,'');
+  document.getElementById('pc'+id).style.display='none';
+  const f=document.getElementById('pf'+id);f.src=base+'/embed/video';f.style.display='block';
+}
+function card(m){
+  const has=m.status==='live'&&m.owncastUrl;
+  const player=has?'<div class="player-wrap"><div class="player-cover" id="pc'+m.id+'" onclick="play('+m.id+',\\''+m.owncastUrl+'\\')"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><p>Lancer le stream Owncast</p></div><iframe id="pf'+m.id+'" src="" allowfullscreen allow="autoplay" style="display:none"></iframe></div>':'';
+  const sc=m.status==='upcoming'?"<div class='score-num' style='font-size:1.5rem;color:var(--muted)'>VS</div>":"<div class='score-num'><span>"+m.scoreA+"</span><span class='score-sep'>-</span><span>"+m.scoreB+"</span></div>";
+  const btn=has?'<button class="btn-watch" onclick="play('+m.id+',\\''+m.owncastUrl+'\\')"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Regarder</button>':"<a class='btn-watch' href='"+m.link+"' target='_blank'><svg viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg>Regarder</a>";
+  return '<article class="match-card">'+player+'<div class="card-bar"><span class="card-comp">'+m.competition+'</span><span class="status-pill '+m.status+'">'+lb[m.status]+'</span></div><div class="score-area"><div class="team"><div class="team-logo">'+logoEl(m.teamA)+'</div><div class="team-name">'+m.teamA.name+'</div></div><div class="score-mid">'+sc+(m.time?'<div class="score-time">'+m.time+'</div>':'')+'</div><div class="team"><div class="team-logo">'+logoEl(m.teamB)+'</div><div class="team-name">'+m.teamB.name+'</div></div></div><div class="card-foot"><span class="card-date">'+m.date+'</span>'+btn+'</div></article>';
+}
+document.getElementById('grid').innerHTML=matches.length?matches.map(card).join(''):'<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:4rem">Aucun match configuré.</p>';
+<\/script>
+</body>
+</html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
+  toast('Fichier index.html généré !');
+}
+
+// ── TOAST ────────────────────────────────────────────
+function toast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=type==='red'?'var(--red)':'var(--green)';
+  el.style.color=type==='red'?'#fff':'#080b0a';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+loadLogos();
+if(sessionStorage.getItem('kitstvAuth'))initDash();
+</script>
+</body>
+</html>
